@@ -1,9 +1,9 @@
-@component('mail::message')
 
 @component('mail::header')
-<h3 style="color:#a39161">{{$classTitle}}</h3>
+<h3 >{{$classTitle}}</h3>
 @endcomponent
 
+@component('mail::message')
 
 <strong>Full name:</strong><br />
 {{$name}}<br /><br />
@@ -11,7 +11,7 @@
 {{$email}}<br /><br />
 
 
-<h3 style="color:#a39161"> Answers</h3>
+<h2 style="color:#a39161"> Answers</h2>
 
 <?php
 
