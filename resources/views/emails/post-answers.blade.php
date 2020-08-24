@@ -1,7 +1,4 @@
 
-@component('mail::header')
-<h3 >{{$classTitle}}</h3>
-@endcomponent
 
 @component('mail::message')
 
