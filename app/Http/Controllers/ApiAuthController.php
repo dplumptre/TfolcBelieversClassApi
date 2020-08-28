@@ -30,9 +30,16 @@ class ApiAuthController extends Controller
         try { 
             if (! $token = JWTAuth::attempt($credentials)) {
 
-                // you need to lace api in for response to work
+                // you need to loop api in for response to work
                 return response()->json(['error' =>  ["error"=>["invalid_credentials"]]], 400);
             }
+
+            $user=User::where('email',$request->email)->first();
+            if($user->activation !== '1'){
+             return response()->json(['error' => ["error"=>["Your account has not been activated. check your inbox/spam for activation link"]]],422);
+            }
+
+
         } catch (JWTException $e) {
             return response()->json(['error' => ["error"=>['could_not_create_token']]], 500);
         }
@@ -59,8 +66,6 @@ class ApiAuthController extends Controller
     public function testEmail(){
 
         Mail::to('dp@aol.com')->send(new Registration('dplumptre@yahoo.com'));
-
-
         return response()->json(['success'=>'worked!']);
 
     }
@@ -78,18 +83,13 @@ class ApiAuthController extends Controller
             'phone'=> 'required|numeric',
         ]);
 
-
-
-
-        
         if($validator->fails()){
             return response()->json(['error'=>$validator->errors()], 400);
         }
 
-
         //dd($request->all());
      
-        //return response()->json(compact('email'),201);
+         $token = Str::random(80);
          $users = new User;
          $users->fname      = $request->firstname;
          $users->lname      = $request->lastname;
@@ -99,30 +99,44 @@ class ApiAuthController extends Controller
          $users->mstatus    = $request->gender;
          $users->country    = $request->country;
          $users->remember_token = Str::random(80);
-         $users->activation = 1;
+         $users->activation = $token;
          $users->username = $request->firstname.$request->lastname;
          $users->dob        = "general date";
          $users->access     = '1';
          $users->save();
 
-         $token = JWTAuth::fromUser($users);
-         $expires= JWTAuth::factory()->getTTL()*60;
+
+         Mail::to($users->email)->send(new Registration($token,$users->email));
+
+         return response()->json([
+            'result' => "IMPORTANT! Check your inbox, we have sent an activation link to your email. 
+            If you dont see it after a few minutes check your spam and mark the email as 'not spam' 
+            so subsequent emails will arrive in your inbox "
+        ],200); 
+
+
+        //  $token = JWTAuth::fromUser($users);
+        //  $expires= JWTAuth::factory()->getTTL()*60;
 
                  // send email to user
 
-        Mail::to($users->email)->send(new Registration($users->email));
+       
 
 
-         return response()->json([
-            'token' => $token,
-            'user' => [
-                "userId" => $users->id,
-                "firstname" => $users->fname,
-                "access" => $users->access
-            ],
-            'type'=>'bearer',
-            'expires'=> JWTAuth::factory()->getTTL()*60,
-        ]);
+        //  return response()->json([
+        //     'token' => $token,
+        //     'user' => [
+        //         "userId" => $users->id,
+        //         "firstname" => $users->fname,
+        //         "access" => $users->access
+        //     ],
+        //     'type'=>'bearer',
+        //     'expires'=> JWTAuth::factory()->getTTL()*60,
+        // ]);
+
+
+       // $token = $this->generateToken($request->email);
+      //  Mail::to($email)->send(new ForgetPassword($token));
 
 
     }
@@ -138,41 +152,52 @@ class ApiAuthController extends Controller
 
 
 
+    
+
+    public function activateAccount($token){
+
+        //dd($token);
+
+        $user=User::where('activation',$token)->first();
+        if(!$user){
+         return response()->json(['error' => 'no activation key'],422);
+        }
+
+        $user->update([
+            'activation' => '1'          
+        ]);
+        return response()->json(['result'=>'successful'],201);
+    }
+
+
+
+
+
+
+
+
     /***  forget password starts */
 
     public function forgetPassword(Request $request,User $user)
     {
-
-
         $input = $request->only('email');
-
-    
         $rules=[
             'email'=>'required|email|exists:users'
         ];   
-        
-
         $validator = Validator::make($input,$rules);
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()],422);
         }
-         
         $this->sendMail($request->email);
-
-
         return response()->json([
             'result' => "Check your inbox, we have sent a reset link to your email. 
             If you dont see it after a few minutes check your spam and mark the email as 'not spam' 
             so subsequent emails will arrive in your inbox "
         ],200); 
-
-        
-
        //return 1;
-
-
-
     }
+
+
 
    public function resetToken(Request $request){
        $user=User::where('remember_token',$request->token)->first();

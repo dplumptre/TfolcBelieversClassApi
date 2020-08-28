@@ -1,12 +1,17 @@
 
 @component('mail::message')
 
-Thanks for signing up with Believers Class.<br /><br />
-Your username is ( {{ $email }} ) <br /><br />
+Welcome!<br /><br />
 
-@component('mail::button', ['url' => 'http://believersclass.tfolc.org/', 'color'=>'danger'])
-Login
+You are almost done with your registration.<br /><br />
+
+Click the button below to activate your account 
+
+@component('mail::button', ['url' => 'http://believersclass.tfolc.org/account-activation/'.$token])
+ set password
 @endcomponent
+
+Your username is ( {{ $email }} ) <br /><br />
 
 Thanks,<br>
 info@believersclass.tfolc.org<br />

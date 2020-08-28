@@ -38,8 +38,6 @@ class ApiController extends Controller
 
         $theClass = Dclass::find($classnum);
         $lec = $theClass->lectures()->get(); 
-        
-
        // $lec = Lecture::where('class_id','=',$classnum)->orderBy('position','Asc')->get();    
         // return response()->json([
         //     'result' =>  $this->transform->lectransform($lec)  
@@ -54,6 +52,11 @@ class ApiController extends Controller
         return response()->json(['result'=>$q,'classInfo'=>$theClass]);
     }  
 
+
+    public function   getAnswers(){
+        $data = Answer::all();
+        return response()->json(['result'=>$data]);
+    }  
 
 
 
@@ -112,115 +115,7 @@ class ApiController extends Controller
 
         
         Mail::to('info@believersclass.tfolc.org')->send(new PostAnswers($emailInfo));
-
-
-    
-
-
-    return response()->json(['result'=>"successfully sent!"]);
-
-
-
-
-
-
-
-
-
-
-
-
-        /*
-        *  when u do json_decode u get
-        * values like this below
-        * $data->{'answer1'};
-        * create the answers below 
-        */
-        // $ans = $request->arrcount + 1 ;
-        // $startNum = 1;
-        // $fullans = array();
-        // for($i=$startNum;$i<$ans;$i++){
-        //     $fullans[]="<strong>Answer </strong>".$i."<br />".$data->{'answer'.$i}."<br /><br />";    
-        // //$fullans[]="<strong>Answer </strong>".$i."<br /><br /><br />";
-        // }
-        // $info = implode(',', $fullans);
-
-
-
-    /* add to the database
-    * 
-    */
-    // $A = new Answer();
-    // $A->dclass = $request->theclaz;
-    // $A->answer = $info;
-    // $A->user_id = $request->user_id;
-    // $A->save();          
-
-    /**  ============================ */
-
-//     $credentials = $request->all();
-//     $count = count($credentials);//  dd($count);
-
-//     $counts = $count - 3; 
-//     $rules = array();
-//     for ($i = 1; $i < $counts+1; $i++)
-//     {
-//         $rules['answer'.$i] ='required';   
-//     } 
-   
-// $v = User::validate($credentials,$rules);
-// if($v !== true){    
-// return Redirect::to('user-area/question/'.Input::get('quest_id'))->withErrors($v)->withInput(); 
-
-//     $user =User::find(Auth::user()->id);
-//     $fullname = $user->lname." ".$user->fname;
-//     $email = $user->email;
-    
-           
-//     //getting all answers
-//     $ans = $counts + 1 ;
-//     $startNum = 1;
-   
-//     $ans = $counts + 1 ;
-//     $startNum = 1;
-//     $fullans = array();
-//     for($i=$startNum;$i<$ans;$i++){    
-//     $fullans[]="<strong>Answer </strong>".$i."<br />".$credentials["answer".$i]."<br /><br />";
-    
-//     }
-//     $info = implode(',', $fullans);
-
-//     $A = new Answer();
-//     $A->dclass = Input::get('class_title');
-//     $A->answer = $info;
-//     $A->user_id = $user->id;
-//     $A->save();
-
-
-
-    /**  ============================ */
-
-    /*
-    * send email
-    * get user credential
-    */            
-
-
-  //  $user = User::find($request->user_id);
-  //  $fullname = $user->lname." ".$user->fname;
-   // $email = $user->email;            
-
-/*
-    Mail::send('mail.message-answer',  array('name'=>$fullname,'classtitle'=>$request->theclaz,
-    'email'=>$email,'data' => $data,'startNum'=>$startNum,
-    'ans'=>$ans,'counts'=>$request->arrcount), function($message)
-    {
-    $message->to($site_email,'Believers Class')
-    ->replyTo($site_email,"Belivers Class")
-    ->subject('The Fountain of Life:Belivers Class - Answers To '.$request->theclaz);
-    });
-
-    */
+        return response()->json(['result'=>"successfully sent!"]);
 
     }  
 
