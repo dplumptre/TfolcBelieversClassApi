@@ -114,31 +114,6 @@ class ApiAuthController extends Controller
             so subsequent emails will arrive in your inbox "
         ],200); 
 
-
-        //  $token = JWTAuth::fromUser($users);
-        //  $expires= JWTAuth::factory()->getTTL()*60;
-
-                 // send email to user
-
-       
-
-
-        //  return response()->json([
-        //     'token' => $token,
-        //     'user' => [
-        //         "userId" => $users->id,
-        //         "firstname" => $users->fname,
-        //         "access" => $users->access
-        //     ],
-        //     'type'=>'bearer',
-        //     'expires'=> JWTAuth::factory()->getTTL()*60,
-        // ]);
-
-
-       // $token = $this->generateToken($request->email);
-      //  Mail::to($email)->send(new ForgetPassword($token));
-
-
     }
 
 

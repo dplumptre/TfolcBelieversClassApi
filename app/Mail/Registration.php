@@ -19,10 +19,11 @@ class Registration extends Mailable implements ShouldQueue
     public $email;
     public $token;
 
-    public function __construct($email,$token)
+    public function __construct($token,$email)
     {
-        $this->email = $email;
         $this->token = $token;
+        $this->email = $email;
+  
     }
 
     /**
