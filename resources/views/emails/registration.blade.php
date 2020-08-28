@@ -8,7 +8,7 @@ You are almost done with your registration.<br /><br />
 Click the button below to activate your account 
 
 @component('mail::button', ['url' => 'http://believersclass.tfolc.org/account-activation/'.$token])
- set password
+ Activate Account
 @endcomponent
 
 Your username is ( {{ $email }} ) <br /><br />
