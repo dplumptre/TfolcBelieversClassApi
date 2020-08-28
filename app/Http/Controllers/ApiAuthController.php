@@ -106,7 +106,7 @@ class ApiAuthController extends Controller
          $users->save();
 
 
-         Mail::to($users->email)->send(new Registration($token,$users->email));
+         Mail::to($request->email)->send(new Registration($token,$users->email));
 
          return response()->json([
             'result' => "IMPORTANT! Check your inbox, we have sent an activation link to your email. 
