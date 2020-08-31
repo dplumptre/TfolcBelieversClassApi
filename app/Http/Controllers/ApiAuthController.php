@@ -88,22 +88,28 @@ class ApiAuthController extends Controller
         }
 
         //dd($request->all());
+
+
      
          $token = Str::random(80);
-         $users = new User;
-         $users->fname      = $request->firstname;
-         $users->lname      = $request->lastname;
-         $users->email      = $request->email;
-         $users->password   = Hash::make($request->password);
-         $users->phone      = $request->phone;
-         $users->mstatus    = $request->gender;
-         $users->country    = $request->country;
-         $users->remember_token = Str::random(80);
-         $users->activation = $token;
-         $users->username = $request->firstname.$request->lastname;
-         $users->dob        = "general date";
-         $users->access     = '1';
-         $users->save();
+         $users = User::create([
+            'fname'      => $request->firstname,
+            'lname'      => $request->lastname,
+            'email'      => $request->email,
+            'password'   => Hash::make($request->password),
+            'phone'      => $request->phone,
+            'mstatus'    => 'single',
+            'gender'     => $request->gender,
+            'country'    => $request->country,
+            'remember_token' => Str::random(80),
+            'activation' => $token,
+            'username' => $request->firstname.$request->lastname,
+            'dob'        => "general date",
+            'access'     => '1',
+
+         ]);
+
+
 
 
          Mail::to($request->email)->send(new Registration($token,$users->email));
