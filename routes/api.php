@@ -23,18 +23,17 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('test-email','ApiAuthController@testEmail');
 Route::post('reset','ApiAuthController@resetToken');
 Route::get('activate-account/{token}','ApiAuthController@activateAccount');
-
 Route::post('register', 'ApiAuthController@register');
 Route::post('login', 'ApiAuthController@authenticate');
 Route::post('change-password', 'ApiAuthController@changePassword');
 Route::post('forget-password', 'ApiAuthController@forgetPassword');
 
 /** Auth */
-Route::get('online-class', 'ApiController@ShowOnlineclass');
-Route::get('online-lecture/{id}', 'ApiController@ShowOnlinelec');  
-Route::get('question/{id}', 'ApiController@showQuestion');
-Route::post('question/{id}', 'ApiController@postQuestion');
-Route::get('get-answers', 'ApiController@getAnswers');
+// Route::get('online-class', 'ApiController@ShowOnlineclass');
+// Route::get('online-lecture/{id}', 'ApiController@ShowOnlinelec');  
+// Route::get('question/{id}', 'ApiController@showQuestion');
+// Route::post('question/{id}', 'ApiController@postQuestion');
+// Route::get('get-answers', 'ApiController@getAnswers');
 
 
 
@@ -42,5 +41,10 @@ Route::get('get-answers', 'ApiController@getAnswers');
 Route::group(['middleware' => ['jwt.verify']], function() {
 // token ones
 Route::post('get-user', 'ApiAuthController@getAuthenticatedUser');
+Route::get('online-class', 'ApiController@ShowOnlineclass');
+Route::get('online-lecture/{id}', 'ApiController@ShowOnlinelec');  
+Route::get('question/{id}', 'ApiController@showQuestion');
+Route::post('question/{id}', 'ApiController@postQuestion');
+Route::get('get-answers', 'ApiController@getAnswers');
 });
    

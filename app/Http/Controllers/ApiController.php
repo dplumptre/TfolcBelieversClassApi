@@ -22,8 +22,6 @@ use App\Mail\PostAnswers;
 
 class ApiController extends Controller
 {
-    
-
 
     public function ShowOnlineclass(){
         $class = Dclass::all();
@@ -68,7 +66,11 @@ class ApiController extends Controller
         $rules = array();
         $data = $input;
         $count = count($data);
-        $count = $count - 2; // i added two things user_id and the class 
+        $count = $count - 3; // i added two things user_id,the class and token
+
+
+        //return response()->json(['count'=>$count,'data'=>$data]);
+        //dd($data);
         
         for ($i = 1; $i < $count+1; $i++)
         {

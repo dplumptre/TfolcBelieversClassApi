@@ -22,8 +22,11 @@ class ApiAuthController extends Controller
 
     /**
      * 
-     * LOGIN WITH PHONE AND NUMBER
+     * LOGIN 
      *  */
+
+    //https://blog.pusher.com/laravel-jwt/
+
     public function authenticate(Request $request)
     {
         $credentials = $request->only('email', 'password');
