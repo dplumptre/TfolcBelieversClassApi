@@ -8,6 +8,9 @@ class Dclass extends Model
 {
     protected $table = 'classes';
 
+    protected $guarded = [
+        'id',
+    ];
 
     public function lectures(){
         return $this->hasMany('App\Lecture','class_id');

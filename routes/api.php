@@ -35,16 +35,24 @@ Route::post('forget-password', 'ApiAuthController@forgetPassword');
 // Route::post('question/{id}', 'ApiController@postQuestion');
 // Route::get('get-answers', 'ApiController@getAnswers');
 
-
+Route::post('score', 'ApiController@scoreUser');
+//Route::get('get-single-answers/{id}', 'ApiController@getSingleAnswers');
 
 
 Route::group(['middleware' => ['jwt.verify']], function() {
 // token ones
+//Route::get('one-answer/{id}', 'ApiController@oneAnswer');
+
+Route::get('get-single-answers/{id}', 'ApiController@getSingleAnswers');
 Route::post('get-user', 'ApiAuthController@getAuthenticatedUser');
 Route::get('online-class', 'ApiController@ShowOnlineclass');
 Route::get('online-lecture/{id}', 'ApiController@ShowOnlinelec');  
 Route::get('question/{id}', 'ApiController@showQuestion');
 Route::post('question/{id}', 'ApiController@postQuestion');
 Route::get('get-answers', 'ApiController@getAnswers');
+Route::get('notifications/{user}', 'ApiController@notification');
+Route::get('get-percentage/{user}', 'ApiController@getPercentage');
+
+
 });
    

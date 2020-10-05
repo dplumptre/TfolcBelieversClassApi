@@ -8,6 +8,7 @@ use App\Dclass;
 use App\Lecture;
 use App\Question;
 use App\Answer;
+use App\Notification;
 use Hash;
 use JWTAuth;
 use Illuminate\Support\Facades\Validator;
@@ -24,10 +25,7 @@ class ApiController extends Controller
 {
 
     public function ShowOnlineclass(){
-        $class = Dclass::all();
-        // return response()->json([
-        //     'result' => $transform($class)
-        // ],200);
+        $class = $this->getClass();
         return response()->json(['result'=>$class]);
     } 
 
@@ -36,10 +34,6 @@ class ApiController extends Controller
 
         $theClass = Dclass::find($classnum);
         $lec = $theClass->lectures()->get(); 
-       // $lec = Lecture::where('class_id','=',$classnum)->orderBy('position','Asc')->get();    
-        // return response()->json([
-        //     'result' =>  $this->transform->lectransform($lec)  
-        // ],200);
         return response()->json(['result'=>$lec,'classInfo'=>$theClass]);
     }       
 
@@ -52,17 +46,35 @@ class ApiController extends Controller
 
 
     public function   getAnswers(){
-        $data = Answer::all();
+        // $data = Answer::with('user')->orderBy('id','Desc')->get();
+
+        // $data = Answer::with(['user' => function($query) {
+        //     $query->where('favorites.user_id', auth()->id);
+        // }])->get();
+
+        $data = User::with('answers')->orderBy('id','Desc')->get();
         return response()->json(['result'=>$data]);
     }  
 
 
 
+    // public function   getSingleAnswers($id){
+    //     $ans = Answer::find($id);
+    //     $user_id = $ans->user_id;
+    //     $data = Answer::where('user_id',$user_id)->orderBy('id','Desc')->get();
+    //     return response()->json(['result'=>$data,'user_id'=> $user_id]);
+    // }  
+
+    public function   getSingleAnswers($id){
+        $ans = Answer::find($id);
+        $user_id = $ans->user_id;
+        $data = User::with('answers')->orderBy('id','Desc')->get();
+        return response()->json(['result'=>$data,'user_id'=> $user_id]);
+    } 
 
     public function   postQuestion($id, Request $request)
     {
         $input = $request->all();
-
         $rules = array();
         $data = $input;
         $count = count($data);
@@ -92,7 +104,7 @@ class ApiController extends Controller
 
         $A = new Answer();
         $A->dclass = $request->class_name;
-        $A->answer = $info;
+        $A->answer = utf8_encode($info);
         $A->user_id = $request->user_id;
         $A->save();
 
@@ -121,9 +133,118 @@ class ApiController extends Controller
 
     }  
 
+    private function nextClass($class,$counts,$currentClass){
+        $nextClass ="";
+        for($i=0;$i <$counts ; $i++){
+            if($currentClass == $class[$i]['class'] && $i == $counts - 1){
+                $nextClass = "";
+            }elseif($currentClass == $class[$i]['class'] && $i < $counts ){
+                $nextClass = $class[$i+1]['class'];
+            }
+        }
+        return $nextClass;
+
+    }
 
 
 
+    private function getClass(){
+        $class = Dclass::all();
+        return $class;
+    }
+
+
+    public function scoreUser(Request $request){
+
+        $classes = $this->getClass();
+        $counts = count($classes);
+
+
+        $status = $request->status;
+        $ans_id = $request->answerId;
+        //$name = $request->name,
+        $currentClass = $request->dclass;
+        //$email = $request->email,
+        $comments = $request->comments;
+
+        $ans = Answer::find($ans_id);
+        $class = Dclass::where('class',$ans->dclass)->first();
+
+
+        $nextClass = $this->nextClass($classes,$counts,$currentClass);
+
+
+
+        //return response()->json(['status'=>$class,'count'=>$counts,'nextclass'=>$nextClass,'test'=>$classes[0]['class']]);
+
+
+
+
+        if($nextClass ==""){
+            $message = "You have passed.\n";
+            $message .= $comments;
+            $message .= "Congrats on the completion of the Believers Class";
+        }
+        $message = "You have passed.";
+        $message .= $comments." \n";
+        $message .= "Kindly move to ".$nextClass."\n";
+        
+        if($status !== "passed"){
+            // edit status @ answers
+            $data = Answer::find($ans_id);
+            $data->status = $status;
+            $data->save();
+
+            $message = "Your answers were not satisfactory.\n";
+            $message .= $comments." \n";
+            $message .=  "Kindly repeat ".$currentClass;
+
+            $n = Notification::updateOrCreate(
+                ['user_id' => $ans->user_id,'class_id'=>$class->id], // conditions & input
+                ['message' => $message,'status'  => $status] // inputs
+            );
+
+        }else{
+            // update answer status
+            $data = Answer::find($ans_id);
+            $data->status = $status;
+            $data->save();
+
+            // create a notification insert
+            // check and delete row
+
+  
+            $n = Notification::updateOrCreate(
+                ['user_id' => $ans->user_id,'class_id'=>$class->id], // conditions & input
+                ['message' => $message,'status'  => $status] // inputs
+            );
+        }
+
+        return response()->json(['status'=>$status]);
+        // send email
+      
+
+    } 
+
+
+    public function notification(User $user){
+        //$data = $user->notifications()->get();
+        $data = $user->notifications()->with('classes')->get();
+        return response()->json(['result'=>$data]);
+    }
+
+
+    public function getPercentage(User $user){
+        $class_no = count($this->getClass());
+        $percentage_level = 100/$class_no;
+        $notification_passed = $user->notifications()->where('status','passed')->count();
+        $percent = $percentage_level * $notification_passed;
+
+        return response()->json([
+        'result'=>round($percent,0)
+        ]);
+
+    }
 
 
 
