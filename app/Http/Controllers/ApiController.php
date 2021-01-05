@@ -16,6 +16,8 @@ use App\Abstracts\users_transform;
 use App\Abstracts\useful_functions;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PostAnswers;
+use App\Mail\Score;
+use PDF;
 
 
 
@@ -101,6 +103,7 @@ class ApiController extends Controller
         $fullans[]="<strong>Answer </strong>".$i."<br />".$data["question".$i]."<br /><br />";
         }
         $info = implode(',', $fullans);
+        $info =  preg_replace('/[^a-zA-Z0-9_:)(><\/ -]/s','',$info); //escaping special chars
 
         $A = new Answer();
         $A->dclass = $request->class_name;
@@ -181,11 +184,11 @@ class ApiController extends Controller
 
 
         if($nextClass ==""){
-            $message = "You have passed.\n";
+            $message = "You have passed.\n ";
             $message .= $comments;
             $message .= "Congrats on the completion of the Believers Class";
         }
-        $message = "You have passed.";
+        $message = "You have passed. ";
         $message .= $comments." \n";
         $message .= "Kindly move to ".$nextClass."\n";
         
@@ -195,14 +198,23 @@ class ApiController extends Controller
             $data->status = $status;
             $data->save();
 
-            $message = "Your answers were not satisfactory.\n";
+            $message = "Your answers were not satisfactory .\n";
             $message .= $comments." \n";
             $message .=  "Kindly repeat ".$currentClass;
 
             $n = Notification::updateOrCreate(
-                ['user_id' => $ans->user_id,'class_id'=>$class->id], // conditions & input
-                ['message' => $message,'status'  => $status] // inputs
+                ['user_id' => $ans->user_id,'answer_id'=>$ans->id, 'class_id'=>$class->id], // conditions & input
+                ['answer_id'=>$ans->id,'class_id'=>$class->id,'user_id' => $ans->user_id,'message' => $message,'status'  => $status] // inputs
             );
+        // send email
+        $emailInfo = [
+            'name' => $data->user->fname,
+            'message' => $message,
+            'question' => $data->dclass
+
+        ];            
+        Mail::to($data->user->email)->send(new Score($emailInfo));
+        return response()->json(['status'=>$status]);
 
         }else{
             // update answer status
@@ -215,13 +227,26 @@ class ApiController extends Controller
 
   
             $n = Notification::updateOrCreate(
-                ['user_id' => $ans->user_id,'class_id'=>$class->id], // conditions & input
-                ['message' => $message,'status'  => $status] // inputs
+                ['user_id' => $ans->user_id,'answer_id'=>$ans->id, 'class_id'=>$class->id], // conditions & input
+                ['answer_id'=>$ans->id,'class_id'=>$class->id,'user_id' => $ans->user_id,'message' => $message,'status'  => $status] // inputs
             );
+
+
+        // send email
+        $emailInfo = [
+            'name' => $data->user->fname,
+            'message' => $message,
+            'question' => $data->dclass
+
+        ];            
+        Mail::to($data->user->email)->send(new Score($emailInfo));
+        return response()->json(['status'=>$status]);
+
         }
 
-        return response()->json(['status'=>$status]);
-        // send email
+
+
+      
       
 
     } 
@@ -229,24 +254,86 @@ class ApiController extends Controller
 
     public function notification(User $user){
         //$data = $user->notifications()->get();
-        $data = $user->notifications()->with('classes')->get();
+        $data = $user->notifications()->with('classes')->orderBy('id','DESC')->get();
         return response()->json(['result'=>$data]);
     }
+
+
 
 
     public function getPercentage(User $user){
         $class_no = count($this->getClass());
         $percentage_level = 100/$class_no;
-        $notification_passed = $user->notifications()->where('status','passed')->count();
+        $notification_passed = $user->notifications()->distinct('class_id')->where('status','passed')->count();
         $percent = $percentage_level * $notification_passed;
 
+        $roundedValue = round($percent,0);
+        if($roundedValue === 100 || $roundedValue > 99 ){
+
+
+        if($user->completed_date === NULL){
+
+          // update user status
+          $user->status = "completed";
+          $user->completed_date = date('Y-m-d\TH:i:s.uP', time());
+          $user->save();
+
+        }
+
+
+        }
+
         return response()->json([
-        'result'=>round($percent,0)
+        'result'=>$roundedValue
         ]);
 
     }
 
 
+    public function getReports(){
+        $data = User::where('status','completed')->get();
+        return response()->json(['result'=>$data]);
+    }
+
+
+
+
+    public function downloadReports(Request $request) 
+    {
+        //https://www.positronx.io/laravel-pdf-tutorial-generate-pdf-with-dompdf-in-laravel/
+        //pdf
+
+        $from = $request->from;
+        $to = $request->to;
+
+        if($from == "" && $to != ""){
+            return response()->json(['error'=>'To date required!'], 400);
+        }elseif($from != "" && $to == ""){
+            return response()->json(['error'=>'From date required!'], 400);
+        }elseif($from == "" || $to == ""){
+            // get  all reports
+            $data=  User::where('status','completed')->get();
+            view()->share('reports',$data);
+            $pdf = PDF::loadView('pdf/pdf_view', $data);
+            return $pdf->download('pdf_file.pdf');
+        }
+
+
+        
+         // get selected reports
+        $data=  User::where('status','completed')
+        ->whereBetween('completed_date', [$from,$to])->get();
+
+        // share data to view
+        view()->share('reports',$data);
+        $pdf = PDF::loadView('pdf/pdf_view', $data);
+  
+        // download PDF file with download method
+        return $pdf->download('pdf_file.pdf');
+
+
+
+    }
 
 
 }

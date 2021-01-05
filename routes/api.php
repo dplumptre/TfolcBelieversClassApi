@@ -52,6 +52,9 @@ Route::post('question/{id}', 'ApiController@postQuestion');
 Route::get('get-answers', 'ApiController@getAnswers');
 Route::get('notifications/{user}', 'ApiController@notification');
 Route::get('get-percentage/{user}', 'ApiController@getPercentage');
+Route::get('get-reports', 'ApiController@getReports');
+
+Route::post('download-reports', 'ApiController@downloadReports');
 
 
 });
