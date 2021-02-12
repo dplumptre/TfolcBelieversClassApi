@@ -7,7 +7,7 @@ You are almost done with your registration.<br /><br />
 
 Click the button below to activate your account 
 
-@component('mail::button', ['url' => 'http://believersclassapi.tfolc.org/api/activate-account/'.$token])
+@component('mail::button', ['url' => 'http://believersclass.tfolc.org/activate-account/'.$token])
  Activate Account
 @endcomponent
 
