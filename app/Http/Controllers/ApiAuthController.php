@@ -150,7 +150,6 @@ class ApiAuthController extends Controller
         $user->update([
             'activation' => '1'          
         ]);
-
         return response()->json(['result'=>'successful'],201);
     }
 
